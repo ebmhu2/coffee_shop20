@@ -28,6 +28,17 @@ db_drop_and_create_all()
         or appropriate status code indicating reason for failure
 '''
 
+
+@app.route('/drinks', methods=['GET'])
+def get_drinks():
+    all_drinks = Drink.query.order_by(Drink.id).all()
+
+    return jsonify({
+        'success': True,
+        'drinks': [drink.short() for drink in all_drinks]
+    })
+
+
 '''
 @TODO implement endpoint
     GET /drinks-detail
@@ -36,6 +47,18 @@ db_drop_and_create_all()
     returns status code 200 and json {"success": True, "drinks": drinks} where drinks is the list of drinks
         or appropriate status code indicating reason for failure
 '''
+
+
+@app.route('/drinks-detail', methods=['GET'])
+@requires_auth('get:drinks-detail')
+def get_drink_detail(jwt):
+    all_drinks = [drink.long() for drink in Drink.query.all()]
+
+    return jsonify({
+        'success': True,
+        'drinks': all_drinks
+    })
+
 
 '''
 @TODO implement endpoint
@@ -46,6 +69,27 @@ db_drop_and_create_all()
     returns status code 200 and json {"success": True, "drinks": drink} where drink an array containing only the newly created drink
         or appropriate status code indicating reason for failure
 '''
+
+
+@app.route('/drinks', methods=['POST'])
+@requires_auth('post:drinks')
+def post_drink(jwt):
+    data = request.get_json()
+    if 'title' and 'recipe' not in data:
+        abort(422)
+
+    title = data['title']
+    recipe_json = json.dumps(data['recipe'])
+
+    drink = Drink(title=title, recipe=recipe_json)
+
+    drink.insert()
+
+    return jsonify({
+        'success': True,
+        'drinks': [drink.long()]
+    })
+
 
 '''
 @TODO implement endpoint
@@ -60,6 +104,28 @@ db_drop_and_create_all()
 '''
 
 
+@app.route('/drinks/<int:id>', methods=['PATCH'])
+@requires_auth('patch:drinks')
+def update_drink(jwt, id):
+    drink = Drink.query.get(id)
+    if drink is None:
+        abort(404)
+
+    data = request.get_json()
+    if 'title' in data:
+        drink.title = data['title']
+
+    if 'recipe' in data:
+        drink.recipe = json.dumps(data['recipe'])
+
+    drink.update()
+
+    return jsonify({
+        'success': True,
+        'drinks': [drink.long()]
+    })
+
+
 '''
 @TODO implement endpoint
     DELETE /drinks/<id>
@@ -72,17 +138,43 @@ db_drop_and_create_all()
 '''
 
 
+@app.route('/drinks/<int:id>', methods=['DELETE'])
+@requires_auth('delete:drinks')
+def delete_drink(jwt, id):
+    drink = Drink.query.get(id)
+    if drink is None:
+        abort(404)
+
+    drink.delete()
+
+    return jsonify({
+        'success': True,
+        'delete': drink.id
+    })
+
+
+
+'''
+Used for tesint Auth0
+'''
+@app.route('/login-results', methods=['GET'])
+def login_results():
+    return (jsonify({'message': 'successful login'}))
+
 ## Error Handling
 '''
 Example error handling for unprocessable entity
 '''
+
+
 @app.errorhandler(422)
 def unprocessable(error):
     return jsonify({
-                    "success": False, 
-                    "error": 422,
-                    "message": "unprocessable"
-                    }), 422
+        "success": False,
+        "error": 422,
+        "message": "unprocessable"
+    }), 422
+
 
 '''
 @TODO implement error handlers using the @app.errorhandler(error) decorator
@@ -94,14 +186,30 @@ def unprocessable(error):
                     }), 404
 
 '''
-
+@app.errorhandler(404)
+def resource_not_found(error):
+    return jsonify({
+        "success": False,
+        "error": 404,
+        "message": "resource not found"
+    }), 404
 '''
 @TODO implement error handler for 404
     error handler should conform to general task above 
 '''
-
-
+@app.errorhandler(401)
+def unauthorized(error):
+    return jsonify({
+        "success": False,
+        "error": 401,
+        "message": "unauthorized"
+    }), 401
 '''
 @TODO implement error handler for AuthError
     error handler should conform to general task above 
 '''
+@app.errorhandler(AuthError)
+def process_AuthError(error):
+    response = jsonify(error.error)
+    response.status_code = error.status_code
+    return response
