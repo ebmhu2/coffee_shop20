@@ -152,6 +152,17 @@ def delete_drink(jwt, id):
         'delete': drink.id
     })
 
+@app.route('/api/v2/users', methods=['GET'])
+def get_users():
+    all_users = Drink.query.order_by(Drink.id).all()
+
+    return jsonify({
+        'success': True,
+        'drinks': [drink.short() for drink in all_drinks]
+    })
+
+
+
 
 
 '''
