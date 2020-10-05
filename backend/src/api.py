@@ -20,12 +20,12 @@ CORS(app)
 '''
 db_drop_and_create_all()
 
-# ROUTES
-"""
-    handles GET requests to retrieve all drinks
-"""
+
 @app.route('/drinks', methods=['GET'])
 def get_drinks():
+    """
+        handles GET requests to retrieve all drinks
+    """
     try:
         # get all available drinks.
         all_drinks = Drink.query.order_by(Drink.id).all()
@@ -40,13 +40,13 @@ def get_drinks():
         abort(404)
 
 
-"""
-    handles GET requests to GET /drinks-detail
-"""
 @app.route('/drinks-detail', methods=['GET'])
 # require the 'get:drinks-detail' permission
 @requires_auth('get:drinks-detail')
 def get_drink_detail(jwt):
+    """
+        handles GET requests to GET /drinks-detail
+    """
     try:
         # get all available drinks.
         all_drinks = [drink.long() for drink in Drink.query.all()]
@@ -61,13 +61,13 @@ def get_drink_detail(jwt):
         abort(404)
 
 
-'''
-    handles POST requests to create new drink
-'''
 @app.route('/drinks', methods=['POST'])
 # require the 'post:drinks' permission
 @requires_auth('post:drinks')
 def post_drink(jwt):
+    """
+        handles POST requests to create new drink
+    """
     try:
         # get data from front end
         data = request.get_json()
@@ -84,20 +84,20 @@ def post_drink(jwt):
         # return success response in json format to view
         return jsonify({
             'success': True,
-            'drinks': [drink.long()]  # contain the drink.long() data representation
+            'drinks': [drink.long()]  # contain the drink.long() data.
         })
     except:
         # abort unprocessable if exception
         abort(422)
 
 
-'''
-    handles PATCH request to update drinks
-'''
 @app.route('/drinks/<int:id>', methods=['PATCH'])
 # require the 'patch:drinks' permission
 @requires_auth('patch:drinks')
 def update_drink(jwt, id):
+    """
+        handles PATCH request to update drinks
+    """
     try:
         # get the matching drink
         drink = Drink.query.get_or_404(id)
@@ -120,23 +120,11 @@ def update_drink(jwt, id):
         # return success response in json format to view
         return jsonify({
             'success': True,
-            'drinks': [drink.long()]  # contain the drink.long() data representation
-    })
+            'drinks': [drink.long()]  # contain the drink.long() data
+        })
     except:
         # 404 if no results found
         abort(404)
-
-
-'''
-@TODO implement endpoint
-    DELETE /drinks/<id>
-        where <id> is the existing model id
-        it should respond with a 404 error if <id> is not found
-        it should delete the corresponding row for <id>
-        it should require the 'delete:drinks' permission
-    returns status code 200 and json {"success": True, "delete": id} where id is the id of the deleted record
-        or appropriate status code indicating reason for failure
-'''
 
 
 @app.route('/drinks/<int:id>', methods=['DELETE'])
@@ -165,11 +153,11 @@ def delete_drink(jwt, id):
 
 
 # Error Handling
-'''
-    error handlers for 422 unprocessable entity
-'''
 @app.errorhandler(422)
 def unprocessable(error):
+    """
+        error handlers for 422 unprocessable entity
+    """
     return jsonify({
         "success": False,
         "error": 422,
@@ -177,11 +165,11 @@ def unprocessable(error):
     }), 422
 
 
-'''
-    error handlers for 404
-'''
 @app.errorhandler(404)
 def resource_not_found(error):
+    """
+        error handlers for 404
+    """
     return jsonify({
         "success": False,
         "error": 404,
@@ -189,11 +177,11 @@ def resource_not_found(error):
     }), 404
 
 
-'''
-    error handlers for 401
-'''
 @app.errorhandler(401)
 def unauthorized(error):
+    """
+        error handlers for 401
+    """
     return jsonify({
         "success": False,
         "error": 401,
@@ -201,11 +189,11 @@ def unauthorized(error):
     }), 401
 
 
-'''
-    error handlers for 403
-'''
 @app.errorhandler(403)
 def forbidden(error):
+    """
+        error handlers for 403
+    """
     return jsonify({
         "success": False,
         "error": 403,
@@ -213,11 +201,11 @@ def forbidden(error):
     }), 403
 
 
-'''
-    error handlers for AuthError
-'''
 @app.errorhandler(AuthError)
 def process_auth_error(error):
+    """
+        error handlers for AuthError
+    """
     response = jsonify(error.error)
     response.status_code = error.status_code
     return response

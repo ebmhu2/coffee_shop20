@@ -86,7 +86,8 @@ def check_permissions(permission, payload):
             'description': 'Permissions not included in JWT.'
         }, 400)
 
-    # Raise an AuthError if the requested permission string is not in the payload permissions array
+    # Raise an AuthError if the requested permission
+    # string is not in the payload permissions array
     if permission not in payload['permissions']:
         raise AuthError({
             'code': 'unauthorized',
@@ -103,7 +104,8 @@ def verify_decode_jwt(token):
       ----------
           token : string
               a json web token
-    !!NOTE urlopen has a common certificate error described here: https://stackoverflow.com/questions/50236117/scraping-ssl-certificate-verify-failed-error-for-http-en-wikipedia-org
+    !!NOTE urlopen has a common certificate error described here:
+    https://stackoverflow.com/questions/50236117/scraping-ssl-certificate-verify-failed-error-for-http-en-wikipedia-org
     """
     jsonurl = urlopen(f'https://{AUTH0_DOMAIN}/.well-known/jwks.json')
     jwks = json.loads(jsonurl.read())
@@ -149,7 +151,8 @@ def verify_decode_jwt(token):
         except jwt.JWTClaimsError:
             raise AuthError({
                 'code': 'invalid_claims',
-                'description': 'Incorrect claims. Please, check the audience and issuer.'
+                'description': 'Incorrect claims. Please, '
+                               'check the audience and issuer.'
             }, 401)
         except Exception:
             raise AuthError({
@@ -181,7 +184,8 @@ def requires_auth(permission=''):
                 payload = verify_decode_jwt(token)
             except:
                 abort(401)
-            # use the check_permissions method validate claims and check the requested permission
+            # use the check_permissions method validate
+            # claims and check the requested permission
             check_permissions(permission, payload)
             return f(payload, *args, **kwargs)
 
